@@ -21,7 +21,7 @@ class KeystrokeHandler(Thread):
     LED_DELAY_500MS = 1 << 7
 
     devices = OrderedDict()
-    devices['SONY_TV'] = Device(0b001, SonyTV('192.168.1.180', 'd8.d4.3c.ef.6d.cf'), 0)
+    devices['SONY_TV'] = Device(0b001, SonyTV('192.168.1.173', 'd8.d4.3c.ef.6d.cf'), 0)
     devices['DUNE_HD'] = Device(0b010, DuneHD('192.168.1.150'), 1)
     devices['KODI'] = Device(0b100, Kodi(), 2)
     devices['APPLE_TV'] = Device(0b011, AppleTV(), 3)
