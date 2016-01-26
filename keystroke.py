@@ -56,15 +56,25 @@ class KeystrokeHandler(Thread):
 
     def handle(self, keystroke):
         keystroke_name = KeystrokeHandler.key_code_name[keystroke]
+        color = 0
+        delay = 0
         if keystroke_name == 'SOURCE':
             device_idx = (KeystrokeHandler.devices.values().index(self.device) + 1) % \
                          len(KeystrokeHandler.devices.keys())
             self.device = KeystrokeHandler.devices.values()[device_idx]
             KeystrokeHandler.devices['SONY_TV'].handler.switch_source(self.device.source)
-            return self.device.color | KeystrokeHandler.LED_DELAY_500MS | KeystrokeHandler.LED_DELAY_200MS
+            color = self.device.color
+            delay = KeystrokeHandler.LED_DELAY_500MS | KeystrokeHandler.LED_DELAY_200MS
         elif keystroke_name in ['VOL+', 'VOL-', 'MUTE']:
             KeystrokeHandler.devices['SONY_TV'].handler.handle(keystroke_name)
-            return KeystrokeHandler.devices['SONY_TV'].color | KeystrokeHandler.LED_DELAY_020MS
+            color = KeystrokeHandler.devices['SONY_TV'].color
+            delay = KeystrokeHandler.LED_DELAY_020MS
         else:
             self.device.handler.handle(keystroke_name)
-            return self.device.color | KeystrokeHandler.LED_DELAY_020MS
+            color = self.device.color
+            delay = KeystrokeHandler.LED_DELAY_020MS
+        blink(color, delay)
+        return color | delay
+
+    def blink(self, color, delay):
+        return
