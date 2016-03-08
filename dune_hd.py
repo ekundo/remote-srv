@@ -8,7 +8,7 @@ class DuneHD(DeviceHandler):
 
     codes = {
         'SMART':    'BA45BF00',
-        'POWER':    'BC43BF00',
+        # 'POWER':    'BC43BF00',
         'RED':      'BF40BF00',
         'GREEN':    'E01FBF00',
         'YELLOW':   'FF00BF00',
@@ -46,8 +46,8 @@ class DuneHD(DeviceHandler):
         'STOP':     'E619BF00',
         'REW':      'E31CBF00',
         'FFWD':     'E41BBF00',
-        'SUBT':     'AB54BF00',
-        'CAMERA':   'B24DBF00',
+        # 'SUBT':     'AB54BF00',
+        # 'CAMERA':   'B24DBF00',
         'D':        'BB44BF00',
         'REC':      '9F60BF00'
     }
@@ -61,6 +61,7 @@ class DuneHD(DeviceHandler):
         return self._logger
 
     def _handle(self, keystroke_name):
+        # pass
         if keystroke_name in DuneHD.codes.keys():
             url = '/cgi-bin/do?cmd=ir_code&ir_code=%s' % DuneHD.codes[keystroke_name]
             self.logger.debug('requesting url: [%s]' % url)
@@ -70,3 +71,11 @@ class DuneHD(DeviceHandler):
             self.conn.close()
         else:
             self.logger.debug('no mapping found for %s' % keystroke_name)
+
+    def switch_on(self):
+        url = '/cgi-bin/do?cmd=ir_code&ir_code=%s' % 'A05FBF00'
+        self.logger.debug('requesting url: [%s]' % url)
+        self.conn.request('GET', url)
+        response = self.conn.getresponse()
+        self.logger.debug('response status: [%d]' % response.status)
+        self.conn.close()

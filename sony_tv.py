@@ -13,7 +13,7 @@ class SonyTV(DeviceHandler):
         'POWER':    '0000000000000000',
         'GUIDE':    '0000000000000002',
         'CH_LIST':  '0000000000000003',
-        'CAMERA':   '0000000000000005',
+        # 'CAMERA':   '0000000000000005',
         'MENU':     '0000000000000006',
         'TOOLS':    '0000000000000007',
         'RETURN':   '0000000000000008',
@@ -41,7 +41,7 @@ class SonyTV(DeviceHandler):
         'MUTE':     '0000000000000032',
         'P+':       '0000000000000033',
         'P-':       '0000000000000034',
-        'SUBT':     '0000000000000035',
+        # 'SUBT':     '0000000000000035',
         'PRE_CH':   '0000000000000040',
         'EXIT':     '0000000000000041',
         'TTX':      '0000000000000051',
@@ -120,8 +120,9 @@ class SonyTV(DeviceHandler):
         return self._logger
 
     def _handle(self, keystroke_name):
-        if keystroke_name == 'POWER':
-            wol.send_magic_packet(self.mac)
+        pass
+        # if keystroke_name == 'POWER':
+        #     wol.send_magic_packet(self.mac)
 
         if keystroke_name in SonyTV.codes.keys():
             self.send_request('*SCIRCC%s' % SonyTV.codes[keystroke_name])
@@ -129,6 +130,7 @@ class SonyTV(DeviceHandler):
             self.logger.debug('no mapping found for %s' % keystroke_name)
 
     def switch_source(self, source):
+        # pass
         if source > 0:
             self.send_request('*SCINPT000000010000000%s' % str(source))
 
@@ -137,7 +139,7 @@ class SonyTV(DeviceHandler):
         soc.connect((self.ip, 20060))
         self.logger.debug('requesting code: [%s]' % request)
         soc.send("%s\n" % request)
-        response = soc.recv(25)
+        response = soc.recv(24)
         soc.close()
         success = list('*SA    0000000000000000\n')
         success[3] = request[3]
@@ -149,3 +151,77 @@ class SonyTV(DeviceHandler):
         self.logger.debug('response status: [%s]' % status)
         time.sleep(50/1000.0)
         return response
+
+    def switch_on(self):
+        wol.send_magic_packet(self.mac)
+
+    def check_online(self, soc):
+        soc.settimeout(0.5)
+        online = False
+        try:
+            soc.connect((self.ip, 20060))
+            online = True
+        except Exception:
+            pass
+        soc.settimeout(10)
+        return online
+
+    def toggle_power(self):
+        currentInput = None
+
+        soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        online = self.check_online(soc)
+
+        currentPowerState = None
+        if online:
+            self.logger.debug('requesting power state')
+            soc.send('*SEPOWR################\n')
+            while currentPowerState is None:
+                response = soc.recv(24)
+                self.logger.debug('got response: [%s]' % response)
+                if response.startswith('*SAPOWR'):
+                    currentPowerState = list(response)[22] == '1'
+        else:
+            currentPowerState = False
+        self.logger.debug('got tvset current power state: [%r]' % currentPowerState)
+
+        powerState = not currentPowerState
+
+        if powerState:
+            self.logger.debug('awaiting tvset go online')
+            while not online:
+                self.switch_on()
+                online = self.check_online(soc)
+            self.logger.debug('tvset is online')
+
+            self.logger.debug('switching tvset on')
+            self.send_request('*SCPOWR0000000000000001')
+            self.logger.debug('tvset is on')
+
+            self.logger.debug('requesting current input')
+            soc.send('*SEINPT################\n')
+            while currentInput is None:
+                response = soc.recv(24)
+                self.logger.debug('got response: [%s]' % response)
+                if response.startswith('*SAINPT'):
+                    currentInput = int(list(response)[22])
+            self.logger.debug('got current input: [%d]' % currentInput)
+
+            return currentInput
+        else:
+            self.logger.debug('switching tvset off')
+            self.send_request('*SCPOWR0000000000000000')
+            self.logger.debug('tvset is off')
+
+        soc.close()
+        return currentInput
+
+
+
+
+
+
+
+
+
+

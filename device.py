@@ -15,6 +15,10 @@ class DeviceHandler:
     def _handle(self, keystroke_name):
         pass
 
+    @abstractmethod
+    def switch_on(self):
+        pass
+
     @abstractproperty
     def logger(self):
         pass
