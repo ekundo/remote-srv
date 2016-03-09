@@ -8,7 +8,6 @@ class DuneHD(DeviceHandler):
 
     codes = {
         'SMART':    'BA45BF00',
-        # 'POWER':    'BC43BF00',
         'RED':      'BF40BF00',
         'GREEN':    'E01FBF00',
         'YELLOW':   'FF00BF00',
@@ -46,8 +45,6 @@ class DuneHD(DeviceHandler):
         'STOP':     'E619BF00',
         'REW':      'E31CBF00',
         'FFWD':     'E41BBF00',
-        # 'SUBT':     'AB54BF00',
-        # 'CAMERA':   'B24DBF00',
         'D':        'BB44BF00',
         'REC':      '9F60BF00'
     }

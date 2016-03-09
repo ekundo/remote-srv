@@ -25,7 +25,7 @@ class KeystrokeHandler(Thread):
     devices = OrderedDict()
     devices['SONY_TV'] = Device(0b011, SonyTV('192.168.1.114', 'd8.d4.3c.ef.6d.cf'), 0)
     devices['DUNE_HD'] = Device(0b010, DuneHD('192.168.1.117'), 1)
-    devices['KODI'] = Device(0b001, Kodi(), 3)
+    devices['KODI'] = Device(0b001, Kodi('192.168.1.115'), 3)
     # devices['APPLE_TV'] = Device(0b001, AppleTV(), 3)
 
     key_code_name = {
@@ -94,13 +94,6 @@ class KeystrokeHandler(Thread):
             KeystrokeHandler.devices['SONY_TV'].handler.switch_source(self.device.source)
             color = self.device.color
             delay = KeystrokeHandler.LED_DELAY_500MS | KeystrokeHandler.LED_DELAY_200MS
-        # if keystroke_name == 'SOURCE':
-        #     device_idx = (KeystrokeHandler.devices.values().index(self.device) + 1) % \
-        #                  len(KeystrokeHandler.devices.keys())
-        #     self.device = KeystrokeHandler.devices.values()[device_idx]
-        #     KeystrokeHandler.devices['SONY_TV'].handler.switch_source(self.device.source)
-        #     color = self.device.color
-        #     delay = KeystrokeHandler.LED_DELAY_500MS | KeystrokeHandler.LED_DELAY_200MS
         elif keystroke_name in ['VOL+', 'VOL-', 'MUTE']:
             KeystrokeHandler.devices['SONY_TV'].handler.handle(keystroke_name)
             color = KeystrokeHandler.devices['SONY_TV'].color
@@ -125,4 +118,3 @@ class KeystrokeHandler(Thread):
         GPIO.output(24, 1)
         GPIO.output(23, 1)
         GPIO.output(18, 1)
-

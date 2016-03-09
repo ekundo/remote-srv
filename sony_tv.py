@@ -8,12 +8,9 @@ import socket
 class SonyTV(DeviceHandler):
     _logger = logging.getLogger('SonyTV')
 
-    # noinspection SpellCheckingInspection
     codes = {
-        'POWER':    '0000000000000000',
         'GUIDE':    '0000000000000002',
         'CH_LIST':  '0000000000000003',
-        # 'CAMERA':   '0000000000000005',
         'MENU':     '0000000000000006',
         'TOOLS':    '0000000000000007',
         'RETURN':   '0000000000000008',
@@ -41,7 +38,6 @@ class SonyTV(DeviceHandler):
         'MUTE':     '0000000000000032',
         'P+':       '0000000000000033',
         'P-':       '0000000000000034',
-        # 'SUBT':     '0000000000000035',
         'PRE_CH':   '0000000000000040',
         'EXIT':     '0000000000000041',
         'TTX':      '0000000000000051',
@@ -120,17 +116,12 @@ class SonyTV(DeviceHandler):
         return self._logger
 
     def _handle(self, keystroke_name):
-        pass
-        # if keystroke_name == 'POWER':
-        #     wol.send_magic_packet(self.mac)
-
         if keystroke_name in SonyTV.codes.keys():
             self.send_request('*SCIRCC%s' % SonyTV.codes[keystroke_name])
         else:
             self.logger.debug('no mapping found for %s' % keystroke_name)
 
     def switch_source(self, source):
-        # pass
         if source > 0:
             self.send_request('*SCINPT000000010000000%s' % str(source))
 
@@ -215,13 +206,3 @@ class SonyTV(DeviceHandler):
 
         soc.close()
         return currentInput
-
-
-
-
-
-
-
-
-
-
