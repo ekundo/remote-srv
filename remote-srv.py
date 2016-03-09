@@ -24,14 +24,18 @@ radio.openReadingPipe(1, pipes[0])
 radio.startListening()
 
 while True:
-    pipe = [0]
-    while not radio.available(pipe, False):
-        time.sleep(1000/1000000.0)
-    request = [0, 0, 0]
-    radio.read(request)
-    if request[0] == 1:
-        result = handler.handle(request[1])
-        radio.stopListening()
-        response = [2, result, request[2]]
-        radio.write(response)
-        radio.startListening()
+    try:
+        pipe = [0]
+        while not radio.available(pipe, False):
+            time.sleep(1000/1000000.0)
+        request = [0, 0, 0]
+        radio.read(request)
+        if request[0] == 1:
+            result = handler.handle(request[1])
+            radio.stopListening()
+            response = [2, result, request[2]]
+            radio.write(response)
+            radio.startListening()
+
+    except:
+        pass
