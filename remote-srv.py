@@ -1,4 +1,4 @@
-#!/usr/bin/env python_root
+#!/usr/bin/env python
 
 from nrf24 import NRF24
 from keystroke import KeystrokeHandler
