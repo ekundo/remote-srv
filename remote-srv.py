@@ -15,7 +15,7 @@ handler = KeystrokeHandler()
 radio = NRF24()
 radio.begin(0, 0, 25, 0)
 radio.setRetries(1, 15)
-radio.setPayloadSize(3)
+radio.setPayloadSize(2)
 radio.setChannel(0x60)
 radio.setDataRate(NRF24.BR_250KBPS)
 radio.setPALevel(NRF24.PA_MAX)
@@ -28,14 +28,9 @@ while True:
     try:
         pipe = [0]
         while not radio.available(pipe, False):
-            time.sleep(1000/1000000.0)
+            time.sleep(1/1000.0)
         request = [0, 0, 0]
         radio.read(request)
-        if request[0] == 1:
-            result = handler.handle(request[1])
-            radio.stopListening()
-            response = [2, result, request[2]]
-            radio.write(response)
-            radio.startListening()
+        handler.handle(request[0])
     except Exception, e:
         logging.error(e, exc_info=True)

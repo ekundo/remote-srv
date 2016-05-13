@@ -8,8 +8,7 @@ from denon_avr import DenonAVR
 
 
 class Device:
-    def __init__(self, color, handler, source, destination):
-        self.color = color
+    def __init__(self, handler, source, destination):
         self.handler = handler
         self.source = source
         self.destination = destination
@@ -23,10 +22,10 @@ class KeystrokeHandler:
     LED_DELAY_500MS = 1 << 7
 
     devices = OrderedDict()
-    devices['DENON_AVR'] = Device(0b100, DenonAVR('192.168.1.136'), None, None)
-    devices['SONY_TV'] = Device(0b011, SonyTV('192.168.1.114', 'd8.d4.3c.ef.6d.cf'), None, '')
-    devices['DUNE_HD'] = Device(0b010, DuneHD('192.168.1.117'), 'BD', None)
-    devices['KODI'] = Device(0b001, Kodi('192.168.1.115'), 'MPLAY', None)
+    devices['DENON_AVR'] = Device(DenonAVR('192.168.1.136'), None, None)
+    devices['SONY_TV'] = Device(SonyTV('192.168.1.114', 'd8.d4.3c.ef.6d.cf'), None, 'MONI1')
+    devices['DUNE_HD'] = Device(DuneHD('192.168.1.117'), 'BD', None)
+    devices['KODI'] = Device(Kodi('192.168.1.115'), 'MPLAY', None)
 
     key_code_name = {
         2:      'POWER',
@@ -59,8 +58,6 @@ class KeystrokeHandler:
 
     def handle(self, keystroke):
         keystroke_name = KeystrokeHandler.key_code_name[keystroke]
-        color = 0
-        delay = 0
         if keystroke_name == 'POWER':
             modes = KeystrokeHandler.devices['DENON_AVR'].handler.toggle_power()
             if modes['source'] is None:
@@ -70,8 +67,6 @@ class KeystrokeHandler:
                     if device.source == modes['source']:
                         self.device = device
                         self.device.handler.switch_on()
-                        color = self.device.color
-                        delay = KeystrokeHandler.LED_DELAY_500MS | KeystrokeHandler.LED_DELAY_200MS
             if modes['destination'] is None:
                 pass
             else:
@@ -82,35 +77,28 @@ class KeystrokeHandler:
             self.device = KeystrokeHandler.devices['DUNE_HD']
             self.device.handler.switch_on()
             KeystrokeHandler.devices['DENON_AVR'].handler.switch_source(self.device.source)
-            color = self.device.color
-            delay = KeystrokeHandler.LED_DELAY_500MS | KeystrokeHandler.LED_DELAY_200MS
         elif keystroke_name == 'CAMERA':
-            self.device = KeystrokeHandler.devices['SONY_TV']
+            self.device = KeystrokeHandler.devices['DENON_AVR']
             self.device.handler.switch_on()
-            KeystrokeHandler.devices['DENON_AVR'].handler.switch_destination(self.device.source)
-            color = self.device.color
-            delay = KeystrokeHandler.LED_DELAY_500MS | KeystrokeHandler.LED_DELAY_200MS
+            # KeystrokeHandler.devices['DENON_AVR'].handler.switch_destination(self.device.source)
         elif keystroke_name == 'SUBT':
             self.device = KeystrokeHandler.devices['KODI']
             self.device.handler.switch_on()
             KeystrokeHandler.devices['DENON_AVR'].handler.switch_source(self.device.source)
-            color = self.device.color
-            delay = KeystrokeHandler.LED_DELAY_500MS | KeystrokeHandler.LED_DELAY_200MS
+        elif keystroke_name == '3D':
+            self.device = KeystrokeHandler.devices['SONY_TV']
+            self.device.handler.switch_on()
+            KeystrokeHandler.devices['DENON_AVR'].handler.switch_destination(self.device.source)
         elif keystroke_name in ['VOL+', 'VOL-', 'MUTE']:
             KeystrokeHandler.devices['DENON_AVR'].handler.handle(keystroke_name)
-            color = KeystrokeHandler.devices['DENON_AVR'].color
-            delay = KeystrokeHandler.LED_DELAY_020MS
         else:
             self.device.handler.handle(keystroke_name)
-            color = self.device.color
-            delay = KeystrokeHandler.LED_DELAY_020MS
-        self.blink(color)
-        return color | delay
+        self.blink()
 
-    def blink(self, color):
-        GPIO.output(24, color & 0b001 == 0)
-        GPIO.output(23, color & 0b010 == 0)
-        GPIO.output(18, color & 0b100 == 0)
+    def blink(self):
+        # GPIO.output(24, 0)
+        GPIO.output(23, 0)
+        # GPIO.output(18, 0)
         sleep(10 / 1000.0)
         self.put_out()
 

@@ -121,10 +121,6 @@ class SonyTV(DeviceHandler):
         else:
             self.logger.debug('no mapping found for %s' % keystroke_name)
 
-    def switch_source(self, source):
-        if source > 0:
-            self.send_request('*SCINPT000000010000000%s' % str(source))
-
     def send_request(self, request):
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         soc.connect((self.ip, 20060))
@@ -145,64 +141,3 @@ class SonyTV(DeviceHandler):
 
     def switch_on(self):
         wol.send_magic_packet(self.mac)
-
-    def check_online(self, soc):
-        soc.settimeout(0.5)
-        online = False
-        try:
-            soc.connect((self.ip, 20060))
-            online = True
-        except Exception:
-            pass
-        soc.settimeout(10)
-        return online
-
-    def toggle_power(self):
-        current_input = None
-
-        soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        online = self.check_online(soc)
-
-        current_power_state = None
-        if online:
-            self.logger.debug('requesting power state')
-            soc.send('*SEPOWR################\n')
-            while current_power_state is None:
-                response = soc.recv(24)
-                self.logger.debug('got response: [%s]' % response)
-                if response.startswith('*SAPOWR'):
-                    current_power_state = list(response)[22] == '1'
-        else:
-            current_power_state = False
-        self.logger.debug('got tvset current power state: [%r]' % current_power_state)
-
-        power_state = not current_power_state
-
-        if power_state:
-            self.logger.debug('awaiting tvset go online')
-            while not online:
-                self.switch_on()
-                online = self.check_online(soc)
-            self.logger.debug('tvset is online')
-
-            self.logger.debug('switching tvset on')
-            self.send_request('*SCPOWR0000000000000001')
-            self.logger.debug('tvset is on')
-
-            self.logger.debug('requesting current input')
-            soc.send('*SEINPT################\n')
-            while current_input is None:
-                response = soc.recv(24)
-                self.logger.debug('got response: [%s]' % response)
-                if response.startswith('*SAINPT'):
-                    current_input = int(list(response)[22])
-            self.logger.debug('got current input: [%d]' % current_input)
-
-            return current_input
-        else:
-            self.logger.debug('switching tvset off')
-            self.send_request('*SCPOWR0000000000000000')
-            self.logger.debug('tvset is off')
-
-        soc.close()
-        return current_input
