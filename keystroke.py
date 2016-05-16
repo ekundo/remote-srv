@@ -7,13 +7,21 @@ from sony_tv import SonyTV
 from dune_hd import DuneHD
 from kodi import Kodi
 from denon_avr import DenonAVR
+from xbox import XBox
 
 
 class Device:
+
     def __init__(self, handler, source, destination):
         self.handler = handler
         self.source = source
         self.destination = destination
+
+
+def blink():
+    GPIO.output(23, 0)
+    sleep(10 / 1000.0)
+    GPIO.output(23, 1)
 
 
 class KeystrokeHandler:
@@ -25,7 +33,7 @@ class KeystrokeHandler:
     devices['SONY_TV'] = Device(SonyTV('192.168.1.114', 'd8.d4.3c.ef.6d.cf'), None, 'MONI1')
     devices['DUNE_HD'] = Device(DuneHD('192.168.1.117'), 'BD', None)
     devices['KODI'] = Device(Kodi('192.168.1.115'), 'MPLAY', None)
-    devices['XBOX'] = Device(Kodi('192.168.1.101'), 'GAME', None)
+    devices['XBOX'] = Device(XBox('192.168.1.101'), 'GAME', None)
 
     key_code_name = {
         2:      'POWER',
@@ -50,9 +58,8 @@ class KeystrokeHandler:
 
     def __init__(self):
         self.device = KeystrokeHandler.devices['DENON_AVR']
-        GPIO.setup(23, GPIO.OUT)  # G
-        self.put_out()
-        pass
+        GPIO.setup(23, GPIO.OUT)
+        GPIO.output(23, 1)
 
     def handle(self, keystroke):
         keystroke_name = KeystrokeHandler.key_code_name.get(keystroke, None)
@@ -81,15 +88,12 @@ class KeystrokeHandler:
             elif keystroke_name == 'SUPPORT':
                 self.device = KeystrokeHandler.devices['DENON_AVR']
                 self.device.handler.switch_on()
-                # KeystrokeHandler.devices['DENON_AVR'].handler.switch_destination(self.device.source)
             elif keystroke_name == 'SUBT':
                 self.device = KeystrokeHandler.devices['KODI']
                 self.device.handler.switch_on()
                 KeystrokeHandler.devices['DENON_AVR'].handler.switch_source(self.device.source)
             elif keystroke_name == '3D':
                 self.device = KeystrokeHandler.devices['SONY_TV']
-                # self.device.handler.switch_on()
-                # KeystrokeHandler.devices['DENON_AVR'].handler.switch_destination(self.device.source)
             elif keystroke_name == 'CAMERA':
                 self.device = KeystrokeHandler.devices['XBOX']
                 self.device.handler.switch_on()
@@ -100,16 +104,5 @@ class KeystrokeHandler:
                 KeystrokeHandler.devices['SONY_TV'].handler.handle(keystroke_name)
             else:
                 self.device.handler.handle(keystroke_name)
-            self.blink()
+            blink()
             sleep(200 / 1000.0)
-
-    def blink(self):
-        GPIO.output(23, 0)
-        sleep(10 / 1000.0)
-        self.put_out()
-
-        return
-
-    @staticmethod
-    def put_out():
-        GPIO.output(23, 1)

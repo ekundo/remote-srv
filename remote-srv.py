@@ -6,7 +6,6 @@ import time
 import logging
 
 logging.basicConfig(filename='/var/tmp/remote-srv.log', level=logging.DEBUG)
-# logging.basicConfig(level=logging.DEBUG)
 
 pipes = [[0xD9, 0x02, 0x86, 0xD0, 0xEE], [0xB8, 0x25, 0xB9, 0xE1, 0xBD]]
 
@@ -37,6 +36,5 @@ while True:
 
         radio.stopListening()
         radio.startListening()
-
     except Exception, e:
         logging.error(e, exc_info=True)

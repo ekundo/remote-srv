@@ -9,7 +9,6 @@ class Kodi(DeviceHandler):
     _logger = logging.getLogger('Kodi')
 
     codes = {
-        # 'SMART':    '',
         'RED':      'red',
         'GREEN':    'green',
         'YELLOW':   'yellow',
@@ -24,11 +23,8 @@ class Kodi(DeviceHandler):
         'KEY_8':    'eight',
         'KEY_9':    'nine',
         'KEY_0':    'zero',
-        # 'TTX':      '',
-        # 'PRE_CH':   '',
         'P+':       'pageplus',
         'P-':       'pageminus',
-        # 'GUIDE':    '',
         'CH_LIST':  'playlist',
         'MENU':     'menu',
         'UP':       'up',

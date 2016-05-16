@@ -58,7 +58,6 @@ class DuneHD(DeviceHandler):
         return self._logger
 
     def _handle(self, keystroke_name):
-        # pass
         if keystroke_name in DuneHD.codes.keys():
             self.send_request(DuneHD.codes[keystroke_name])
         else:
@@ -77,4 +76,3 @@ class DuneHD(DeviceHandler):
         response = self.conn.getresponse()
         self.logger.debug('response status: [%d]' % response.status)
         self.conn.close()
-
