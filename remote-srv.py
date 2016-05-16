@@ -29,8 +29,14 @@ while True:
         pipe = [0]
         while not radio.available(pipe, False):
             time.sleep(1/1000.0)
-        request = [0, 0, 0]
+
+        request = [0, 0]
         radio.read(request)
+
         handler.handle(request[0])
+
+        radio.stopListening()
+        radio.startListening()
+
     except Exception, e:
         logging.error(e, exc_info=True)

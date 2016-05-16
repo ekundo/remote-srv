@@ -50,7 +50,7 @@ class SonyTV(DeviceHandler):
         'STOP':     '0000000000000081',
         'REC':      '0000000000000083',
         'PAUSE':    '0000000000000084',
-        # "Input": "0000000000000001",
+        'SOURCE':    '0000000000000001',
         # "Favorites": "0000000000000004",
         # "Num11": "0000000000000028",
         # "Num12": "0000000000000029",
@@ -141,3 +141,6 @@ class SonyTV(DeviceHandler):
 
     def switch_on(self):
         wol.send_magic_packet(self.mac)
+
+    def switch_off(self):
+        self.send_request('*SCIRCC0000000000000000')

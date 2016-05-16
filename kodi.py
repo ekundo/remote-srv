@@ -81,3 +81,6 @@ class Kodi(DeviceHandler):
 
     def switch_on(self):
         pass
+
+    def switch_off(self):
+        pass

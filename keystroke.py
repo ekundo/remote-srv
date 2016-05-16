@@ -1,3 +1,5 @@
+import logging
+
 from RPi import GPIO
 from time import sleep
 from collections import OrderedDict
@@ -15,17 +17,15 @@ class Device:
 
 
 class KeystrokeHandler:
-    LED_DELAY_020MS = 1 << 3
-    LED_DELAY_050MS = 1 << 4
-    LED_DELAY_100MS = 1 << 5
-    LED_DELAY_200MS = 1 << 6
-    LED_DELAY_500MS = 1 << 7
+
+    logger = logging.getLogger('KeystrokeHandler')
 
     devices = OrderedDict()
     devices['DENON_AVR'] = Device(DenonAVR('192.168.1.136'), None, None)
     devices['SONY_TV'] = Device(SonyTV('192.168.1.114', 'd8.d4.3c.ef.6d.cf'), None, 'MONI1')
     devices['DUNE_HD'] = Device(DuneHD('192.168.1.117'), 'BD', None)
     devices['KODI'] = Device(Kodi('192.168.1.115'), 'MPLAY', None)
+    devices['XBOX'] = Device(Kodi('192.168.1.101'), 'GAME', None)
 
     key_code_name = {
         2:      'POWER',
@@ -50,55 +50,61 @@ class KeystrokeHandler:
 
     def __init__(self):
         self.device = KeystrokeHandler.devices['DENON_AVR']
-        GPIO.setup(24, GPIO.OUT)  # R
         GPIO.setup(23, GPIO.OUT)  # G
-        GPIO.setup(18, GPIO.OUT)  # B
-
         self.put_out()
+        pass
 
     def handle(self, keystroke):
-        keystroke_name = KeystrokeHandler.key_code_name[keystroke]
-        if keystroke_name == 'POWER':
-            modes = KeystrokeHandler.devices['DENON_AVR'].handler.toggle_power()
-            if modes['source'] is None:
-                pass
+        keystroke_name = KeystrokeHandler.key_code_name.get(keystroke, None)
+        if keystroke is not None:
+            if keystroke_name == 'POWER':
+                modes = KeystrokeHandler.devices['DENON_AVR'].handler.toggle_power()
+                if modes['source'] is None:
+                    pass
+                else:
+                    for key, device in KeystrokeHandler.devices.iteritems():
+                        if device.source == modes['source']:
+                            self.device = device
+                            self.device.handler.switch_on()
+                if modes['destination'] is None:
+                    for key, device in KeystrokeHandler.devices.iteritems():
+                        device.handler.switch_off()
+                    pass
+                else:
+                    for key, device in KeystrokeHandler.devices.iteritems():
+                        if device.destination == modes['destination']:
+                            device.handler.switch_on()
+            elif keystroke_name == 'HISTORY':
+                self.device = KeystrokeHandler.devices['DUNE_HD']
+                self.device.handler.switch_on()
+                KeystrokeHandler.devices['DENON_AVR'].handler.switch_source(self.device.source)
+            elif keystroke_name == 'SUPPORT':
+                self.device = KeystrokeHandler.devices['DENON_AVR']
+                self.device.handler.switch_on()
+                # KeystrokeHandler.devices['DENON_AVR'].handler.switch_destination(self.device.source)
+            elif keystroke_name == 'SUBT':
+                self.device = KeystrokeHandler.devices['KODI']
+                self.device.handler.switch_on()
+                KeystrokeHandler.devices['DENON_AVR'].handler.switch_source(self.device.source)
+            elif keystroke_name == '3D':
+                self.device = KeystrokeHandler.devices['SONY_TV']
+                # self.device.handler.switch_on()
+                # KeystrokeHandler.devices['DENON_AVR'].handler.switch_destination(self.device.source)
+            elif keystroke_name == 'CAMERA':
+                self.device = KeystrokeHandler.devices['XBOX']
+                self.device.handler.switch_on()
+                KeystrokeHandler.devices['DENON_AVR'].handler.switch_source(self.device.source)
+            elif keystroke_name in ['VOL+', 'VOL-', 'MUTE']:
+                KeystrokeHandler.devices['DENON_AVR'].handler.handle(keystroke_name)
+            elif keystroke_name == 'SOURCE':
+                KeystrokeHandler.devices['SONY_TV'].handler.handle(keystroke_name)
             else:
-                for key, device in KeystrokeHandler.devices.iteritems():
-                    if device.source == modes['source']:
-                        self.device = device
-                        self.device.handler.switch_on()
-            if modes['destination'] is None:
-                pass
-            else:
-                for key, device in KeystrokeHandler.devices.iteritems():
-                    if device.destination == modes['destination']:
-                        device.handler.switch_on()
-        elif keystroke_name == 'HISTORY':
-            self.device = KeystrokeHandler.devices['DUNE_HD']
-            self.device.handler.switch_on()
-            KeystrokeHandler.devices['DENON_AVR'].handler.switch_source(self.device.source)
-        elif keystroke_name == 'CAMERA':
-            self.device = KeystrokeHandler.devices['DENON_AVR']
-            self.device.handler.switch_on()
-            # KeystrokeHandler.devices['DENON_AVR'].handler.switch_destination(self.device.source)
-        elif keystroke_name == 'SUBT':
-            self.device = KeystrokeHandler.devices['KODI']
-            self.device.handler.switch_on()
-            KeystrokeHandler.devices['DENON_AVR'].handler.switch_source(self.device.source)
-        elif keystroke_name == '3D':
-            self.device = KeystrokeHandler.devices['SONY_TV']
-            self.device.handler.switch_on()
-            KeystrokeHandler.devices['DENON_AVR'].handler.switch_destination(self.device.source)
-        elif keystroke_name in ['VOL+', 'VOL-', 'MUTE']:
-            KeystrokeHandler.devices['DENON_AVR'].handler.handle(keystroke_name)
-        else:
-            self.device.handler.handle(keystroke_name)
-        self.blink()
+                self.device.handler.handle(keystroke_name)
+            self.blink()
+            sleep(200 / 1000.0)
 
     def blink(self):
-        # GPIO.output(24, 0)
         GPIO.output(23, 0)
-        # GPIO.output(18, 0)
         sleep(10 / 1000.0)
         self.put_out()
 
@@ -106,6 +112,4 @@ class KeystrokeHandler:
 
     @staticmethod
     def put_out():
-        GPIO.output(24, 1)
         GPIO.output(23, 1)
-        GPIO.output(18, 1)

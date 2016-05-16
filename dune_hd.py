@@ -60,19 +60,21 @@ class DuneHD(DeviceHandler):
     def _handle(self, keystroke_name):
         # pass
         if keystroke_name in DuneHD.codes.keys():
-            url = '/cgi-bin/do?cmd=ir_code&ir_code=%s' % DuneHD.codes[keystroke_name]
-            self.logger.debug('requesting url: [%s]' % url)
-            self.conn.request('GET', url)
-            response = self.conn.getresponse()
-            self.logger.debug('response status: [%d]' % response.status)
-            self.conn.close()
+            self.send_request(DuneHD.codes[keystroke_name])
         else:
             self.logger.debug('no mapping found for %s' % keystroke_name)
 
     def switch_on(self):
-        url = '/cgi-bin/do?cmd=ir_code&ir_code=%s' % 'A05FBF00'
+        self.send_request('A05FBF00')
+
+    def switch_off(self):
+        self.send_request('A15EBF00')
+
+    def send_request(self, code):
+        url = '/cgi-bin/do?cmd=ir_code&ir_code=%s' % code
         self.logger.debug('requesting url: [%s]' % url)
         self.conn.request('GET', url)
         response = self.conn.getresponse()
         self.logger.debug('response status: [%d]' % response.status)
         self.conn.close()
+

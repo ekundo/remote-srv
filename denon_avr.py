@@ -50,6 +50,7 @@ class DenonAVR(DeviceHandler):
             self.send_command('%s' % DenonAVR.codes[keystroke_name])
         else:
             self.logger.debug('no mapping found for %s' % keystroke_name)
+        pass
 
     def switch_source(self, source):
         if source is not None:
@@ -63,12 +64,19 @@ class DenonAVR(DeviceHandler):
         self.send_command("PWON")
         time.sleep(2.0)
 
+    def send_power_off(self):
+        self.send_command("PWSTANDBY")
+        time.sleep(2.0)
+
     def send_command(self, command):
-        soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        soc.connect((self.ip, 23))
-        self.logger.debug('sending command: [%s]' % command)
-        soc.send("%s\r" % command)
-        soc.close()
+        try:
+            soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            soc.connect((self.ip, 23))
+            self.logger.debug('sending command: [%s]' % command)
+            soc.send("%s\r" % command)
+            soc.close()
+        except socket.error:
+            pass
 
     def send_request(self, request, timeout=500/1000.0):
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -90,16 +98,20 @@ class DenonAVR(DeviceHandler):
             time.sleep(10/1000.0)
 
         soc.close()
-        time.sleep(200/1000.0)
-
         response = response.split('\r')[0]
         self.logger.debug('got response: [%s]' % response)
+
+        time.sleep(200/1000.0)
         return response
 
     def switch_on(self):
         self.send_power_on()
 
+    def switch_off(self):
+        self.send_power_off()
+
     def toggle_power(self):
+        self.logger.debug('toggle_power')
         response = self.send_request('PW?')
         current_power_state = response == 'PWON'
         self.logger.debug('got avr current power state: [%r]' % current_power_state)
@@ -111,15 +123,15 @@ class DenonAVR(DeviceHandler):
             self.logger.debug('avr is on')
             self.logger.debug('requesting current input')
             response = self.send_request('SI?')
-            current_input = re.search('SI(.*)', response).group(0)
+            current_input = re.search('SI(.*)', response).group(1)
             self.logger.debug('got current input: [%s]' % current_input)
             self.logger.debug('requesting current output')
             response = self.send_request('VSMONI ?')
-            current_output = re.search('VS(MONI.)', response).group(0)
+            current_output = re.search('VS(MONI.)', response).group(1)
             self.logger.debug('got current output: [%s]' % current_output)
         else:
             self.logger.debug('switching avr off')
-            self.send_command('PWSTANDBY')
+            self.send_power_off()
             self.logger.debug('avr is off')
             current_input = None
             current_output = None

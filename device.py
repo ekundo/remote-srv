@@ -19,6 +19,10 @@ class DeviceHandler:
     def switch_on(self):
         pass
 
+    @abstractmethod
+    def switch_off(self):
+        pass
+
     @abstractproperty
     def logger(self):
         pass
